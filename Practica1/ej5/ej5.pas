@@ -121,6 +121,7 @@ begin
 end;
 
 // d) Añadir una o más especies al final del archivo con sus datos obtenidos por teclado. La carga finaliza al recibir especie “zzz”.
+// Tengo que preguntar, parece redundante con cargarArchivo
 procedure agregarEspecie(var a:archivo);
 var
     e:especie;
