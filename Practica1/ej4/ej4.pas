@@ -9,11 +9,11 @@ var
     linea: string;
 begin
     // Abrir el archivo de entrada en modo lectura
-    AssignFile(archivoEntrada, archivo);
+    Assign(archivoEntrada, archivo);
     Reset(archivoEntrada);
 
     // Crear el archivo de salida en modo escritura
-    AssignFile(archivoSalida, 'salida.txt');
+    Assign(archivoSalida, 'salida.txt');
     Rewrite(archivoSalida);
 
     // Leer cada línea del archivo de entrada y escribirla en el archivo de salida
@@ -24,14 +24,14 @@ begin
     end;
 
     // Cerrar los archivos
-    CloseFile(archivoEntrada);
-    CloseFile(archivoSalida);
+    Close(archivoEntrada);
+    Close(archivoSalida);
 end;
 
 
 var
     rutaArchivo: string;
-    
+
 begin
     // Leer la ruta del archivo desde la consola
     Write('Ingrese la ruta del archivo de entrada: ');
