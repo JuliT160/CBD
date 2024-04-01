@@ -17,7 +17,7 @@ Nombre Disco: ---------- cantidad vendida: ------------
 Total Autor:
 Total Discográfica:
 }
-
+// Hay que usar corte de control
 program ej2;
 
 type
