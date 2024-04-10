@@ -23,30 +23,22 @@ type
         AnioEdicion: integer;
     end;
 
-var
-    archivoTexto: Text;
-    archivoBinario: file of tipoLibro;
-    libro: tipoLibro;
-    opcion: Char;
-    ISBNBusqueda: string;
-
 // Creo el archivo binario a partir del archivo de texto
-procedure CrearArchivoBinario();
+procedure CrearArchivoBinario(var archivoTexto: Text; var archivoBinario: File);
 var
     linea: string;
+    libro: tipoLibro;
 begin
-    Assign(archivoTexto, 'libros.txt');
-    Assign(archivoBinario, 'libros.dat');
     Reset(archivoTexto);
     Rewrite(archivoBinario);
 
     while not Eof(archivoTexto) do
     begin
         ReadLn(archivoTexto, linea);
-        libro.ISBN := Copy(linea, 1, 13);
-        libro.Titulo := Copy(linea, 15, 50);
-        ReadLn(archivoTexto, libro.AnioEdicion);
-        ReadLn(archivoTexto, libro.Editorial);
+        read(archivoTexto, libro.ISBN);
+        ReadLn(archivoTexto, libro.Titulo);
+        Read(archivoTexto, libro.AnioEdicion);
+        Readln(archivoTexto, libro.Editorial);
         ReadLn(archivoTexto, libro.Genero);
         Write(archivoBinario, libro);
     end;
@@ -55,11 +47,10 @@ begin
     Close(archivoBinario);
 end;
 
+
 // Agrego un libro al archivo binario
-procedure AgregarLibro();
+procedure AgregarLibro(var archivoBinario: File);
 begin
-    Assign(archivoBinario, 'libros.dat');
-    Reset(archivoBinario);
     Seek(archivoBinario, FileSize(archivoBinario));
     
     WriteLn('Ingrese el ISBN del libro:');
@@ -74,18 +65,13 @@ begin
     ReadLn(libro.AnioEdicion);
     
     Write(archivoBinario, libro);
-    
-    Close(archivoBinario);
 end;
 
 // Modifico un libro en el archivo binario
-procedure ModificarLibro();
+procedure ModificarLibro(var archivoBinario: File);
 var
     encontrado: Boolean;
 begin
-    Assign(archivoBinario, 'libros.dat');
-    Reset(archivoBinario);
-    
     WriteLn('Ingrese el ISBN del libro a modificar:');
     ReadLn(ISBNBusqueda);
     
@@ -113,11 +99,12 @@ begin
     
     if not encontrado then
         WriteLn('No se encontro un libro con el ISBN especificado.');
-    
-    Close(archivoBinario);
 end;
 
 begin
+    Assign(archivoBinario, 'libros.dat');
+    Reset(archivoBinario);
+    
     //Programa basico de seleccion de opciones
     WriteLn('Seleccione una opcion:');
     WriteLn('a. Crear archivo binario a partir de archivo de texto.');
@@ -128,10 +115,12 @@ begin
     
     case opcion of
         'a': CrearArchivoBinario();
-        'b': AgregarLibro();
-        'c': ModificarLibro();
+        'b': AgregarLibro(archivoBinario);
+        'c': ModificarLibro(archivoBinario);
         'd': WriteLn('Saliendo...');
         else
             WriteLn('Opción no valida.');
     end;
+    
+    Close(archivoBinario);
 end.
