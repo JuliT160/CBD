@@ -37,6 +37,11 @@ type
   maestro = file of zapato;
   detalle = file of vendidos;
 
+  detalles = array[1..20] of detalle;
+  resto = array[1..20] of vendidos;
+
+
+
 procedure leer(var archivo: detalle; var dato: vendidos);
 begin
   if not eof(archivo) then
@@ -45,8 +50,82 @@ begin
     dato.codigo := 9999; //Valor alto de corte
 end;
 
-procedure minimo(var r1, r2, r3, r4, r5, r6, r7, r8, r9)
+procedure minimo(var det: detalles; var min: vendidos; var r: resto);
+var 
+   posMin, i : integer;
+begin
+  min := r[1]; 
+  posMin:= 1; 
+  for i:= 2 to 17 do begin
+    if (r[i].codigo < min.codigo) then begin
+      min:= r[i];
+      posMin:= i;
+    end
+    else if (r[i].codigo = min.codigo) and (r[i].numero < min.numero) then begin
+      min:= r[i];
+      posMin:= i;
+    end;
+  end;
+  leer(det[posMin], r[posMin]);
+end;
+
+procedure actualizar(var det: detalles; var m: maestro; var sinStock: text);
+var 
+  regm: zapato;
+  min: vendidos;
+  i: integer;
+  res: resto;
+begin
+  for i:= 1 to 20 do begin
+    leer(det[i], res[i]);
+  end;
+  reset(m);
+  minimo(det, min, res);
+  while(min.codigo <> 9999) do
+  begin
+
+    while(min.codigo < regm.codigo) And (min.numero < regm.numero) do
+    begin
+      writeln('Calzado sin ventas: ', regm.codigo, ' Numero: ', regm.numero);
+      read(m, regm);
+    end;
+    
+    while(min.codigo = regm.codigo) and (min.numero = regm.numero) and (min.codigo <> 9999) do
+    begin
+      regm.stock:= regm.stock - min.cantidad;
+      if regm.stock < regm.stock_min then
+        writeln(sinStock, 'Codigo: ', regm.codigo, ' Numero: ', regm.numero);
+      minimo(det, min, res);
+    end;
+    Seek(m, FilePos(m)-1);
+    write(m, regm);
+    end;
+  Close(m);
+  for i:= 1 to 20 do
+    Close(det[i]);
+
+end;
+
+
+
+//Programa principal
+
+var 
+  m: maestro; 
+  det: detalles;
+  nombreArchi: string; 
+  i: integer;
+  sinStock: text;
 
 begin
-  
+  assign(m, 'maestro.dat');
+  assign(sinStock, 'calzadosinstock.txt');
+  rewrite(sinStock);
+
+  for i:= 1 to 20 do begin
+    assign(det[i], 'detalle.dat');  //intToStr no funciona buscar otra forma
+    reset(det[i]);
+  end;
+  actualizar(det, m, sinStock);
+  close(sinStock);
 end.
