@@ -12,9 +12,10 @@ veces como funciones haya dentro de esa semana
 Usar conceptos de algoritmica clasica}
 
 program ej4;
+//Uses sysutils; //comentado porque sino llora el vsc pero para que funcione hay que descomentarlo
 
 const
-    cant_cines = 20;
+    cant_cines = 2;
 
 type
     str50 = string[50];
