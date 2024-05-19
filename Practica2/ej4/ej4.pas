@@ -13,71 +13,116 @@ Usar conceptos de algoritmica clasica}
 
 program ej4;
 
-Uses sysutils;
-
 const
-    cant_cines = 2;
+    cant_cines = 20;
 
 type
+    str50 = string[50];
 
     regDetalle = record
         codigo: integer;
-        nombre: string;
-        genero: string;
-        director: string;
+        nombre: str50;
+        genero: str50;
+        director: str50;
         duracion: integer;
-        fecha: string;
+        fecha: str50;
         asistentes: integer;
     end;
 
     regMaestro = record
         codigo: integer;
-        nombre: string;
-        genero: string;
-        director: string;
+        nombre: str50;
+        genero: str50;
+        director: str50;
         duracion: integer;
-        asistentes: integer;
+        totalAsistentes: integer;
     end;
 
     archMaestro = file of regMaestro;
     archDetalle = file of regDetalle;
+    arrDetalles = array[1..cant_cines] of archDetalle;
+    arrRegDetalles = array[1..cant_cines] of regDetalle;
 
-var 
-    maestro: archMaestro;
-    detalle: archDetalle;
-    rMaestro: regMaestro;
-    rDetalle: regDetalle;
-    i: integer;
-    ruta: string; //??
-    nombre: string;
 
+procedure leerDetalle(var archivo: archDetalle; var registro: regDetalle);
 begin
-    assign(maestro, 'maestro'); 
-    reset(maestro);
-    read(maestro, rMaestro);
+    if not eof(archivo) then
+        read(archivo, registro)
+    else
+        registro.codigo := 9999; // valor muy alto para marcar fin de archivo
+end;
 
-    for i:= 1 to cant_cines do
+procedure encontrarMinimo(var detalles: arrDetalles; var registros: arrRegDetalles; var min: regDetalle; var minIndex: integer);
+var
+    i: integer;
+begin
+    min.codigo := 9999;
+    for i := 1 to cant_cines do
     begin
-      //primero codigo adicional para leer los detalles
-        nombre := IntToStr(i);
-        Assign(detalle, nombre);  // supongo que los detalles estan nombrados por el numero de cine
-        reset(detalle);
-        read(detalle, rDetalle);
-        while not eof(detalle) do
+        if (registros[i].codigo < min.codigo) then
         begin
-          while(rMaestro.codigo <> rDetalle.codigo) do
-            begin
-                read(maestro, rMaestro);
-            end;
-            rMaestro.asistentes := rMaestro.asistentes + rDetalle.asistentes;
-            read(detalle, rDetalle);
-            seek(maestro, filepos(maestro)-1);
-            write(maestro, rMaestro);
+            min := registros[i];
+            minIndex := i;
         end;
-        close(detalle);
     end;
-    close(maestro);
-    writeln('Archivo maestro generado con exito');
-end.
+end;
 
-//modificarlo despues. 
+procedure generarMaestro(var maestro: archMaestro; var detalles: arrDetalles; ruta: string);
+var
+    rMaestro: regMaestro;
+    rDetalle: arrRegDetalles;
+    minDetalle: regDetalle;
+    i, minIndex: integer;
+    detalleNombre: string;
+begin
+    // Asignar y abrir el archivo maestro para escritura
+    Assign(maestro, ruta + 'maestro.dat');
+    Rewrite(maestro);
+
+    // Asignar y abrir los archivos de detalles
+    for i := 1 to cant_cines do
+    begin
+        detalleNombre := ruta + 'detalle' + IntToStr(i) + '.dat';
+        Assign(detalles[i], detalleNombre);
+        Reset(detalles[i]);
+        leerDetalle(detalles[i], rDetalle[i]);
+    end;
+
+    // Proceso de consolidación de detalles en maestro
+    encontrarMinimo(detalles, rDetalle, minDetalle, minIndex);
+    while minDetalle.codigo <> 9999 do
+    begin
+        rMaestro.codigo := minDetalle.codigo;
+        rMaestro.nombre := minDetalle.nombre;
+        rMaestro.genero := minDetalle.genero;
+        rMaestro.director := minDetalle.director;
+        rMaestro.duracion := minDetalle.duracion;
+        rMaestro.totalAsistentes := 0;
+
+        while (minDetalle.codigo <> 9999) and (rMaestro.codigo = minDetalle.codigo) do
+        begin
+            rMaestro.totalAsistentes := rMaestro.totalAsistentes + minDetalle.asistentes;
+            leerDetalle(detalles[minIndex], rDetalle[minIndex]);
+            encontrarMinimo(detalles, rDetalle, minDetalle, minIndex);
+        end;
+
+        write(maestro, rMaestro);
+    end;
+
+    // Cerrar todos los archivos
+    for i := 1 to cant_cines do
+    begin
+        Close(detalles[i]);
+    end;
+    Close(maestro);
+end;
+
+var
+    maestro: archMaestro;
+    detalles: arrDetalles;
+    ruta: string;
+begin
+    ruta := ''; // completar con la ruta de los archivos
+    generarMaestro(maestro, detalles, ruta);
+    writeln('Archivo maestro generado con éxito.');
+end.
